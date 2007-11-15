@@ -1,0 +1,7 @@
+=Installation Wizard=
+
+In the "installwizrad" subdirectory, I put a file named "create.nsi". Using this file with [http://nsis.sourceforge.net/ NSIS], you can create an installation wizard. This installation wizard will install the whole "Wei Common Library" into your system, including all .dll, .lib, and header files, and it will register 2 environment variables, WCL_BASEPATH, PATH into the windows system.
+
+=Visual Studio Property File=
+
+When you develop a project using Microsoft Visual Studio 2005 and "Wei Common Library" (WCL), you can include the property file prepared by the WCL package. Using this method, you don't need to modify your project setting for the path of WCL header files and import libraries.
