@@ -1,0 +1,7 @@
+=安裝精靈=
+
+在 "installwizard" 目錄下, 我放置了一個名叫 create.nsi 的檔案, 將這個檔案搭配 [http://nsis.sourceforge.net/ NSIS] 一起, 便可以製作出一個安裝精靈出來. 這個安裝精靈將會自動的把整個 Wei Common Library (WCL) 裝進你的系統裡, 包括動態函式庫 (.dll), 匯入函式庫 (.lib), 以及標頭檔. 另外, 安裝精靈還會註冊兩個環境變數, WCL_BASEPATH 以及 PATH.
+
+=Visual Studio Property 檔案=
+
+當你使用 Microsoft Visual Studio 2005 以及 "Wei Common Library" (WCL) 來開發你的專案時, 你可以直接匯入位於 MSVC 目錄內的 property 檔. 這樣的話, 你就不必為了 WCL 還要費力去修改你的專案設定了.
