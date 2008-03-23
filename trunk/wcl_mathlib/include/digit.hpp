@@ -15,20 +15,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __math_h__
-#define __math_h__
+#ifndef __wcl_mathlib_digit_hpp__
+#define __wcl_mathlib_digit_hpp__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  
-  __declspec(dllexport)
-  extern unsigned int count_binary_bit_one(unsigned int const value);
-  __declspec(dllexport)
-  unsigned int base_10_digit_number(unsigned int value);
-  
-#ifdef __cplusplus
+#include "wcl_types.hpp"
+
+namespace Wcl
+{
+  namespace Mathlib
+  {
+    namespace Digit
+    {
+      __declspec(dllexport) extern uint32_t count_binary_bit_one_number(uint32_t const value);
+      __declspec(dllexport) extern uint32_t count_digit_number_in_base_10(uint32_t value);
+    }
+  }
 }
-#endif
 
 #endif
