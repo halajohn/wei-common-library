@@ -17,134 +17,92 @@
 
 #include <cassert>
 #include <deque>
-
 #include <boost/foreach.hpp>
 
 #include "lexerlib.h"
 
-#include "../../wcl_fmtstr/include/fmtstr.h"
-
-namespace
+namespace Wcl
 {
-  /// @var putback_buf
-  ///
-  /// Becuase there is no quarantee in the standard that how
-  /// many characters can be put back. Thus I have to
-  /// implement a putback_buf like this to simulate putting
-  /// back characters to a file.
-  std::deque<wchar_t> putback_buf;
-}
-
-void
-lexerlib_put_back(std::wfstream &file, wchar_t const ch)
-{
-  putback_buf.push_front(ch);
-}
-
-void
-lexerlib_put_back(std::wfstream &file,
-                  std::wstring const * const str)
-{
-  for (std::wstring::const_reverse_iterator iter = str->rbegin();
-       iter != str->rend();
-       ++iter)
+  namespace Lexerlib
   {
-    putback_buf.push_front(*iter);
-  }
-}
-
-void
-lexerlib_put_back(std::wstring &str, wchar_t const ch)
-{
-  str.insert(str.begin(), ch);
-}
-
-/**
- * @brief
- * Read a character from the file specified by the first parameter.
- *
- * If this function sees successive spaces, then it will eat them all, and
- * return just one space. Otherwise, it will return what it eats.
- */
-bool
-lexerlib_read_ch(std::wfstream &file, wchar_t * const ch)
-{
-  bool see_spaces = false;
-  
-  while (1)
-  {
-    if (putback_buf.size() != 0)
+    namespace
     {
-      (*ch) = putback_buf.front();
-      putback_buf.pop_front();
+      /** @var putback_buf
+       *
+       * implement a putback_buf to simulate putting
+       * back to a file as to a string.
+       */
+      std::deque<wchar_t> putback_buf;
     }
-    else
+
+    void
+    put_back(std::wfstream &/* file */, wchar_t const ch)
     {
-      file.get(*ch);
-      
-      if (true == file.eof())
+      putback_buf.push_front(ch);
+    }
+
+    void
+    put_back(std::wfstream &/* file */,
+             std::wstring const &str)
+    {
+      for (std::wstring::const_reverse_iterator iter = str.rbegin();
+           iter != str.rend();
+           ++iter)
       {
-        (*ch) = WEOF;
-        return true;
-      }
-      
-      if (true == file.fail())
-      {
-        return false;
+        putback_buf.push_front(*iter);
       }
     }
     
-    if (L' ' == (*ch))
+    void
+    put_back(std::wstring &str, wchar_t const ch)
     {
-      see_spaces = true;
-    }
-    else
-    {
-      if (true == see_spaces)
-      {
-        lexerlib_put_back(file, *ch);
-        *ch = L' ';
-      }
-      break;
-    }
-  }
-  
-  return true;
-}
-
-bool
-lexerlib_read_ch(std::wstring &str, wchar_t * const ch)
-{
-  bool see_spaces = false;
-  
-  while (1)
-  {
-    if (0 == str.length())
-    {
-      (*ch) = WEOF;
-      return true;
+      str.insert(str.begin(), ch);
     }
     
-    *ch = str[0];
-    
-    if (L' ' == (*ch))
+    /**
+     * @brief
+     * Read a character from the file specified by the first parameter.
+     *
+     * If this function sees successive spaces, then it will eat them all, and
+     * return just one space. Otherwise, it will return what it eats.
+     */
+    void
+    read_ch(std::wfstream &file, wchar_t &ch)
     {
-      see_spaces = true;
-      str.erase(str.begin());
-    }
-    else
-    {
-      if (true == see_spaces)
+      if (putback_buf.size() != 0)
       {
-        *ch = L' ';
+        ch = putback_buf.front();
+        putback_buf.pop_front();
       }
       else
       {
+        file.get(ch);
+        
+        if (true == file.eof())
+        {
+          throw EndOfSourceException();
+        }
+        
+        if (true == file.fail())
+        {
+          throw SourceIsBrokenException();
+        }
+      }
+    }
+
+    void
+    read_ch(std::wstring &str, wchar_t &ch)
+    {
+      if (0 == str.length())
+      {
+        throw EndOfSourceException();
+      }
+      else
+      {
+        ch = str[0];
+        
         str.erase(str.begin());
       }
-      break;
     }
   }
-  
-  return true;
 }

@@ -15,11 +15,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <wchar.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cwchar>
+
+#pragma warning(disable: 4819)
+#include <boost/cast.hpp>
 
 #include "fmtstr_func.h"
 #include "fmtstr_internal.h"
@@ -110,11 +113,11 @@ fmtstr_dump_unfreed()
   while (rem != NULL)
   {
     fwprintf(stderr,
-            L"%s: LINE %d, ADDRESS %p, %d unfreed\n",
-            rem->filename,
-            rem->line_no,
-            rem->address,
-            rem->alloc_size);
+             L"%s: LINE %d, ADDRESS %p, %d unfreed\n",
+             rem->filename,
+             rem->line_no,
+             rem->address,
+             rem->alloc_size);
     
     totalSize += rem->alloc_size;
     
@@ -141,6 +144,10 @@ fmtstr_dump_unfreed()
 #define debug_delete_fmtstr(a)
 #endif
 
+// I use do {} while(-1 == __LINE__) rather than do {} while(0)
+// to avoid Visual C++ complains:
+//
+// warning C4127: conditional expression is constant
 #define ALLOC_NEW_SPACE(str1, str_length, enlarge_size)                 \
   do {                                                                  \
     wchar_t *str2 = (wchar_t *)calloc(1, sizeof(wchar_t) * (alloc_size + enlarge_size)); \
@@ -152,7 +159,7 @@ fmtstr_dump_unfreed()
     str1 = str2;                                                        \
     str = str1 + str_length;                                            \
     debug_add_fmtstr(filename, line_no, (void *)str1, sizeof(wchar_t) * alloc_size); \
-  } while(0)
+  } while(-1 == __LINE__)
 
 static wchar_t *
 create_fmt(wchar_t const * const fmt_before_length_str,
@@ -202,10 +209,10 @@ fmtstr_append_valist(
   size_t alloc_size;
   fmtstr_bool realloc = fmtstr_false;
   
-  int min_output_length;
+  int min_output_length = 0;
   fmtstr_bool min_output_length_overflow;
   
-  int min_output_length_buf_index;
+  int min_output_length_buf_index = 0;
   wchar_t min_output_length_buf[MIN_OUTPUT_LENGTH_BUF_SIZE];
   
   wchar_t *fmt_str;
@@ -309,73 +316,77 @@ fmtstr_append_valist(
           min_output_length_overflow = fmtstr_true;
           min_output_length = 0xFFFFFFFF;
         }
-        break;
-        
+      break;
+      
       case L'd':
         fmt_str = create_fmt(L"%", min_output_length_buf, L"d");
       
-        d = va_arg(*ap, int);
-        str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, d);
+      d = va_arg(*ap, int);
+      str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, d);
         
-        free(fmt_str);
-        fmt_str = NULL;
-        state = 0;
-        break;
-        
+      free(fmt_str);
+      fmt_str = NULL;
+      state = 0;
+      break;
+      
       case L'x':
         fmt_str = create_fmt(L"0x%", min_output_length_buf, L"x");
         
-        d = va_arg(*ap, int);
-        str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, d);
+      d = va_arg(*ap, int);
+      str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, d);
         
-        free(fmt_str);
-        fmt_str = NULL;
-        state = 0;
-        break;
+      free(fmt_str);
+      fmt_str = NULL;
+      state = 0;
+      break;
         
       case L'f':
         fmt_str = create_fmt(L"%", min_output_length_buf, L"f");
         
-        f = va_arg(*ap, double);
-        str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, f);
+      f = va_arg(*ap, double);
+      str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, f);
         
-        free(fmt_str);
-        fmt_str = NULL;
-        state = 0;
-        break;
+      free(fmt_str);
+      fmt_str = NULL;
+      state = 0;
+      break;
         
       case L's':
         s = va_arg(*ap, wchar_t *);
-        if (s != NULL)
+      if (s != NULL)
+      {
+        if ((wcslen(s) + 1) > (alloc_size - str_length))
         {
-          if ((wcslen(s) + 1) > (alloc_size - str_length))
-          {
-            ALLOC_NEW_SPACE(str_head, str_length, (int)wcslen(s) + STRBUF_ENLARGE_SIZE);
-          }
-          
-          fmt_str = create_fmt(L"%", min_output_length_buf, L"s");
-          
-          str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, s);
-          
-          free(fmt_str);
-          fmt_str = NULL;
+          ALLOC_NEW_SPACE(str_head, str_length, (int)wcslen(s) + STRBUF_ENLARGE_SIZE);
         }
-        state = 0;
-        break;
-        
+          
+        fmt_str = create_fmt(L"%", min_output_length_buf, L"s");
+          
+        str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, s);
+          
+        free(fmt_str);
+        fmt_str = NULL;
+      }
+      state = 0;
+      break;
+      
       case L'c':
         /* This should be va_arg(*ap, char);
          * however, `char' is promoted to `int' when passed through `...'
          */
         fmt_str = create_fmt(L"%", min_output_length_buf, L"c");
+      
+      {
+        int const tmp_c = va_arg(*ap, int);
         
-        c = va_arg(*ap, int);
-        str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, c);
-        
-        free(fmt_str);
-        fmt_str = NULL;
-        state = 0;
-        break;
+        c = boost::numeric_cast<wchar_t>(tmp_c);
+      }
+      str_length += (size_t)swprintf_s(str, alloc_size - str_length, fmt_str, c);
+      
+      free(fmt_str);
+      fmt_str = NULL;
+      state = 0;
+      break;
         
       default:
         /* Not a format character, then output it directly. */
@@ -489,7 +500,7 @@ fmtstr_wcstombs(
   size_t wcnt;
   
   slen = MB_CUR_MAX * wscnt + 1;
-  s = malloc(sizeof(char) * slen);
+  s = static_cast<char *>(malloc(sizeof(char) * slen));
   assert(s != NULL);
   
   debug_add_fmtstr(filename, line_no, (void *)s, sizeof(char) * slen);
@@ -516,7 +527,7 @@ fmtstr_mbstowcs(
   size_t wcnt;
   
   wslen = strlen(s) + 1;
-  ws = malloc(sizeof(wchar_t) * wslen);
+  ws = static_cast<wchar_t *>(malloc(sizeof(wchar_t) * wslen));
   assert(ws != NULL);
   
   debug_add_fmtstr(filename, line_no, (void *)ws, sizeof(wchar_t) * wslen);
@@ -533,4 +544,44 @@ fmtstr_mbstowcs(
   }
   
   return ws;
+}
+
+void
+fmtstr_split_str_by_delimiter(
+  wchar_t const * const str,
+  wchar_t const * const delimiter,
+  std::list<std::wstring> &splitted_str)
+{
+  splitted_str.clear();
+  
+  if (0 == str)
+  {
+    return;
+  }
+  
+  if (0 == delimiter)
+  {
+    splitted_str.push_back(str);
+    
+    return;
+  }
+  
+  wchar_t const *curr = str;
+  wchar_t const *prev = str;
+  
+  for (;;)
+  {
+    curr = wcsstr(prev, delimiter);
+    
+    if (curr != 0)
+    {
+      splitted_str.push_back(std::wstring(prev, curr - prev));
+      prev = curr + 2;
+    }
+    else
+    {
+      splitted_str.push_back(std::wstring(prev, wcslen(str) - (prev - str)));
+      break;
+    }
+  }
 }

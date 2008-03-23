@@ -34,6 +34,9 @@ private:
   wchar_t const * const m_filename;
   size_t const m_line;
   
+  // Objects of this class should not be copied.
+  alloc_info_t &operator=(alloc_info_t const &);
+  
 public:
   
   alloc_info_t(void * const addr,

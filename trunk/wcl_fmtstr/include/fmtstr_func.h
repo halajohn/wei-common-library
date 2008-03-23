@@ -18,7 +18,10 @@
 #ifndef __fmtstr_func_h__
 #define __fmtstr_func_h__
 
-#include <stdarg.h>
+#include <cstdarg>
+
+#include <list>
+#include <string>
 
 enum fmtstr_bool
 {
@@ -31,62 +34,59 @@ typedef enum fmtstr_bool fmtstr_bool;
 #define __declspec(dllexport)
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  
-  __declspec(dllexport) wchar_t *fmtstr_new_valist(
+__declspec(dllexport) wchar_t *fmtstr_new_valist(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    wchar_t const *fmt, va_list *ap);
+  wchar_t const *fmt, va_list *ap);
   
-  __declspec(dllexport) wchar_t *fmtstr_new(
+__declspec(dllexport) wchar_t *fmtstr_new(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    wchar_t const * fmt, ...);
+  wchar_t const * fmt, ...);
   
-  __declspec(dllexport) wchar_t *fmtstr_append_valist(
+__declspec(dllexport) wchar_t *fmtstr_append_valist(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    wchar_t *orig,
-    wchar_t const * fmt,
-    va_list *ap);
+  wchar_t *orig,
+  wchar_t const * fmt,
+  va_list *ap);
   
-  __declspec(dllexport) wchar_t *fmtstr_append(
+__declspec(dllexport) wchar_t *fmtstr_append(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    wchar_t * const orig,
-    wchar_t const * fmt, ...);
+  wchar_t * const orig,
+  wchar_t const * fmt, ...);
   
-  __declspec(dllexport) char *fmtstr_wcstombs(
+__declspec(dllexport) char *fmtstr_wcstombs(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    wchar_t const * const ws,
-    size_t const wscnt);
+  wchar_t const * const ws,
+  size_t const wscnt);
   
-  __declspec(dllexport) wchar_t *fmtstr_mbstowcs(
+__declspec(dllexport) wchar_t *fmtstr_mbstowcs(
 #if defined(_DEBUG)
-    wchar_t const * const filename,
-    size_t const line_no,
+  wchar_t const * const filename,
+  size_t const line_no,
 #endif
-    char const * const s,
-    size_t * const wscnt);
+  char const * const s,
+  size_t * const wscnt);
   
-  __declspec(dllexport) void fmtstr_delete(void * const str);
-  __declspec(dllexport) fmtstr_bool fmtstr_dump_unfreed();
-  
-#ifdef __cplusplus
-}
-#endif
+__declspec(dllexport) void fmtstr_delete(void * const str);
+__declspec(dllexport) fmtstr_bool fmtstr_dump_unfreed();
+
+__declspec(dllexport) void fmtstr_split_str_by_delimiter(
+  wchar_t const * const str,
+  wchar_t const * const delimiter,
+  std::list<std::wstring> &splitted_str);
 
 #endif

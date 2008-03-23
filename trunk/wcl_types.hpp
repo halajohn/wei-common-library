@@ -1,15 +1,18 @@
 #ifndef __wcl_types_hpp__
 #define __wcl_types_hpp__
 
-typedef char   wcl_int8;
-typedef short  wcl_int16;
-typedef int    wcl_int32;
-
-typedef unsigned char wcl_uint8;
-typedef unsigned short wcl_uint16;
-typedef unsigned int wcl_uint32;
-
-typedef float  wcl_float;
-typedef double wcl_double;
+namespace Wcl
+{
+  typedef char   int8_t;
+  typedef short  int16_t;
+  typedef int    int32_t;
+  
+  typedef unsigned char  uint8_t;
+  typedef unsigned short uint16_t;
+  typedef unsigned int   uint32_t;
+  
+  typedef float  float_t;
+  typedef double double_t;
+}
 
 #endif
