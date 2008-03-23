@@ -1,3 +1,5 @@
+#include "precompiled_header.hpp"
+
 // wcl_colorlib - portable color library
 // Copyright (C) <2007>  Wei Hu <wei.hu.tw@gmail.com>
 // 
@@ -15,30 +17,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __cie_hpp__
-#define __cie_hpp__
+#include "color_space_converter.hpp"
+#include "color_space_converter_plugin.hpp"
 
-#include "wcl_types.hpp"
-
-namespace wcl_colorlib
+namespace Wcl
 {
-  namespace Cie
+  namespace Colorlib
   {
-    typedef enum
-    {
-      CIE_STD_1931,
-      CIE_STD_1964
-    } CieStd;
-    
-    typedef wcl_double (*CieSpectrumFunc)(wcl_double const wavelength);
-    
-    static void spectrum_to_xyz(
-      CieSpectrumFunc const spectrum_func,
-      CieStd const cie_std,
-      wcl_double * const x,
-      wcl_double * const y,
-      wcl_double * const z);
+    ColorSpaceConverterPlugin::ColorSpaceConverterPlugin(ColorSpaceConverter * const converter)
+      : COLOR_SPACE_CONVERTER_PLUGIN_SET_CONVERTER(converter)
+    {}
   }
 }
-
-#endif

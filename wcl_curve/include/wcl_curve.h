@@ -1,51 +1,39 @@
-#ifndef __wcl_curve_gtk_h__
-#define __wcl_curve_gtk_h__
+#ifndef __wcl_curve_h__
+#define __wcl_curve_h__
 
-#include <gtk/gtkdrawingarea.h>
-#include <cairo.h>
+#define WCL_TYPE_CURVE            (wcl_curve_get_type())
+#define WCL_CURVE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), WCL_TYPE_CURVE, WclCurve))
+#define WCL_CURVE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), WCL_TYPE_CURVE,  WclCurveClass))
+#define WCL_IS_CURVE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj), WCL_TYPE_CURVE))
+#define WCL_IS_CURVE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), WCL_TYPE_CURVE))
+#define WCL_CURVE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), WCL_TYPE_CURVE, WclCurveClass))
 
-#define GTK_TYPE_WCL_CURVE      (wcl_curve_get_type())
-#define WCL_CURVE(obj)          GTK_CHECK_CAST(obj, GTK_TYPE_WCL_CURVE, WclCurve)
-#define WCL_CURVE_CLASS(klass)  GTK_CHECK_CLASS_CAST(klass, GTK_TYPE_WCL_CURVE, WclCurveClass)
-#define GTK_IS_WCL_CURVE(obj)   GTK_CHECK_TYPE(obj, GTK_TYPE_WCL_CURVE)
+struct WclCurve
+{
+  /* parent object */
+  GtkDrawingArea parent;
+  
+  GdkPixmap *pixmap;
+};
+typedef struct WclCurve WclCurve;
+
+struct WclCurveClass
+{
+  /* parent class */
+  GtkDrawingAreaClass parent_class;
+};
+typedef struct WclCurveClass WclCurveClass;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-  
-#define gdkcairo_t void
-  
-  struct WclCurve
-  {
-    GtkDrawingArea  drawing_area;
-    gdkcairo_t     *gdkcairo;
-  };
-  typedef struct WclCurve WclCurve;
-  
-#undef gdkcairo_t
-  
-  struct WclCurveClass
-  {
-    GtkDrawingAreaClass parent_class;
-    
-    void (*paint)(WclCurve *, cairo_t *);
-  };
-  typedef struct WclCurveClass WclCurveClass;
-  
-  GType      wcl_curve_get_type(void);
-  GtkWidget *wcl_curve_new(void);
-  cairo_t   *wcl_curve_get_cairo (WclCurve *gtkcairo);
-  
 
-/* convenience function to set the current cairo color
- * from a GdkColor
- */
-  void      wcl_curve_set_gdk_color (cairo_t  *cr,
-                                     GdkColor *color);
+__declspec(dllexport) extern GType wcl_curve_get_type(void);
+__declspec(dllexport) extern GtkWidget *wcl_curve_new(void);
 
 #ifdef __cplusplus
 }
-#endif                          /* __cplusplus */
+#endif
 
 #endif

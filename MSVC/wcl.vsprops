@@ -10,7 +10,7 @@
 	/>
 	<Tool
 		Name="VCLinkerTool"
-		AdditionalDependencies="wcl_memory_debugger.lib wcl_lexerlib.lib wcl_fmtstr.lib wcl_fslib.lib wcl_mathlib.lib"
+		AdditionalDependencies="wcl_memory_debugger.lib wcl_lexerlib.lib wcl_fmtstr.lib wcl_fslib.lib wcl_mathlib.lib wcl_curve.lib wcl_colorlib.lib wcl_drawinglib.lib wcl_registry.lib"
 		AdditionalLibraryDirectories="$(WCL_BASEPATH)\lib"
 	/>
 </VisualStudioPropertySheet>

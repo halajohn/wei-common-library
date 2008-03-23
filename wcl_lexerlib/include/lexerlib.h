@@ -15,18 +15,182 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __StreamHandler_h__
-#define __StreamHandler_h__
+#ifndef __lexerlib_h__
+#define __lexerlib_h__
 
 #include <cstddef>
 #include <fstream>
 #include <list>
+#include <exception>
 
-__declspec(dllexport) extern void lexerlib_put_back(std::wfstream &file, wchar_t const ch);
-__declspec(dllexport) extern void lexerlib_put_back(std::wstring &str, wchar_t const ch);
-__declspec(dllexport) extern bool lexerlib_read_ch(std::wfstream &file, wchar_t * const ch);
-__declspec(dllexport) extern void lexerlib_put_back(std::wfstream &file,
-                                                    std::wstring const * const str);
-__declspec(dllexport) extern bool lexerlib_read_ch(std::wstring &str, wchar_t * const ch);
+#if defined(WCL_LEXERLIB_EXPORTS)
+#define WCL_LEXERLIB_EXPORT __declspec(dllexport)
+#else
+#define WCL_LEXERLIB_EXPORT __declspec(dllimport)
+#endif
+
+namespace Wcl
+{
+  namespace Lexerlib
+  {
+    class SourceIsBrokenException : public std::exception
+    {
+      virtual char const *what() const throw()
+      {
+        return "Source is broken.";
+      }
+    };
+    typedef class SourceIsBrokenException SourceIsBrokenException;
+    
+    class EndOfSourceException : public std::exception
+    {
+      virtual char const *what() const throw()
+      {
+        return "End of source.";
+      }
+    };
+    typedef class EndOfSourceException EndOfSourceException;
+    
+    class InvalidPredictionException : public std::exception
+    {
+      virtual char const *what() const throw()
+      {
+        return "Invalid prediction.";
+      }
+    };
+    typedef class InvalidPredictionException InvalidPredictionException;
+    
+    WCL_LEXERLIB_EXPORT extern void put_back(std::wfstream &file, wchar_t const ch);
+    WCL_LEXERLIB_EXPORT extern void put_back(std::wstring &str, wchar_t const ch);
+    WCL_LEXERLIB_EXPORT extern void put_back(std::wfstream &file, std::wstring const &str);
+    
+    WCL_LEXERLIB_EXPORT extern void read_ch(std::wfstream &file, wchar_t &ch);
+    WCL_LEXERLIB_EXPORT extern void read_ch(std::wstring &str, wchar_t &ch);
+    
+    /**
+     * @param delimiter the characters used to separate different
+     * string
+     * @param skip the characters which will be skipped when
+     * read
+     * @return the found string
+     */
+    template<typename T>
+    void
+    read_string(
+      T &file,
+      std::list<wchar_t> const &delimiter,
+      std::list<wchar_t> const &skip,  
+      std::wstring &result_str)
+    {
+      wchar_t ch;
+      
+      result_str.clear();
+      
+      // Read the first character.
+      read_ch(file, ch);
+      
+      bool restart = true;
+      for (; true == restart;)
+      {
+        restart = false;
+        
+        // If the read character is not included in the
+        // 'skip' set, then I need to see if it is
+        // inside the 'delimiter' set. If yes, then
+        // return it immediately.
+        BOOST_FOREACH(wchar_t const &del_ch, delimiter)
+        {
+          if (del_ch == ch)
+          {
+            result_str = ch;
+            return;
+          }
+        }
+        
+        // Check to see if I need to skip the read
+        // character.
+        BOOST_FOREACH(wchar_t const &skip_ch, skip)
+        {
+          if (skip_ch == ch)
+          {
+            // Skip this one and read again.
+            restart = true;
+            break;
+          }
+        }
+        
+        if (true == restart)
+        {
+          // Read more character.
+          read_ch(file, ch);
+        }
+      }
+      
+      // read success, and the read character is not a 'skip'
+      // one or a 'delimeter' one.
+      
+      for (;;)
+      {
+        result_str += ch;
+        
+        try
+        {
+          read_ch(file, ch);
+        }
+        catch (EndOfSourceException &)
+        {
+          // There are characters in 'result_str', so that I
+          // can not throw EndOfSourceException this time.
+          // this function will throw it next time.
+          return;
+        }
+        
+        BOOST_FOREACH(wchar_t const &skip_ch, skip)
+        {
+          if (skip_ch == ch)
+          {
+            // I don't need to put back characters which are
+            // to be skipped.
+            return;
+          }
+        }
+          
+        BOOST_FOREACH(wchar_t const &del_ch, delimiter)
+        {
+          if (del_ch == ch)
+          {
+            put_back(file, ch);
+            return;
+          }
+        }
+      }
+    }
+    
+    template<typename T>
+    void
+    ensure_next_string_is(
+      T &file,
+      std::list<wchar_t> const &delimiter,
+      std::list<wchar_t> const &skip,
+      std::wstring const &prediction)
+    {
+      std::wstring result_str;
+      
+      try
+      {
+        read_string(file, delimiter, skip, result_str);
+      }
+      catch (EndOfSourceException &)
+      {
+        throw InvalidPredictionException();
+      }
+      
+      if (prediction.compare(result_str) != 0)
+      {
+        throw InvalidPredictionException();
+      }
+    }
+  }
+}
 
 #endif
