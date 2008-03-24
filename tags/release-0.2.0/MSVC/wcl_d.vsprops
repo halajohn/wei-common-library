@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="wcl Debug"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(WCL_BASEPATH)\include\"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="wcl_memory_debugger_d.lib wcl_lexerlib_d.lib wcl_fmtstr_d.lib wcl_fslib_d.lib wcl_mathlib_d.lib wcl_curve_d.lib wcl_colorlib_d.lib wcl_drawinglib_d.lib wcl_registry_d.lib"
+		AdditionalLibraryDirectories="$(WCL_BASEPATH)\lib"
+	/>
+</VisualStudioPropertySheet>
